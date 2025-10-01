@@ -24,6 +24,12 @@ export const useSignup = () => {
         description: '프로필 정보를 등록해주세요',
       });
 
+      // TODO: 실제 인증 구현 필요
+      // 임시로 userId를 세션 스토리지에 저장
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('tempUserId', data.userId);
+      }
+
       // 역할에 따라 리디렉션
       router.push(data.redirectUrl);
     },

@@ -21,7 +21,7 @@ export const registerAdvertiserRoutes = (app: Hono<AppEnv>) => {
    * POST /api/advertiser/profile
    * 광고주 프로필 생성
    */
-  app.post('/advertiser/profile', async (c) => {
+  app.post('/api/advertiser/profile', async (c) => {
     const logger = getLogger(c);
 
     // TODO: 인증 미들웨어 구현 필요

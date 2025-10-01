@@ -16,13 +16,22 @@ export const useCreateAdvertiserProfile = () => {
   return useMutation({
     mutationFn: async (data: CreateAdvertiserProfileRequest) => {
       // TODO: 실제 인증 토큰 사용 필요
-      // 임시로 헤더에 user-id 추가
+      // 임시로 세션 스토리지에서 userId 가져오기
+      const tempUserId =
+        typeof window !== 'undefined'
+          ? sessionStorage.getItem('tempUserId')
+          : null;
+
+      if (!tempUserId) {
+        throw new Error('로그인이 필요합니다');
+      }
+
       const response = await apiClient.post<CreateAdvertiserProfileResponse>(
         '/api/advertiser/profile',
         data,
         {
           headers: {
-            'X-User-Id': 'temp-user-id', // TODO: 실제 userId로 교체
+            'X-User-Id': tempUserId,
           },
         },
       );

@@ -23,6 +23,8 @@ export const CampaignSummarySchema = z.object({
   applicationCount: z.number().int().nonnegative(),
   thumbnail: z.string().url().nullable(),
   status: z.enum(['recruiting', 'closed', 'selection_complete']),
+  benefits: z.string().optional(),
+  businessName: z.string().optional(),
   createdAt: z.string(),
 });
 

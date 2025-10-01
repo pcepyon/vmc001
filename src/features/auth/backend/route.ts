@@ -18,7 +18,7 @@ export const registerAuthRoutes = (app: Hono<AppEnv>) => {
    * POST /api/auth/signup
    * 회원가입
    */
-  app.post('/auth/signup', async (c) => {
+  app.post('/api/auth/signup', async (c) => {
     const logger = getLogger(c);
 
     // 요청 body 파싱

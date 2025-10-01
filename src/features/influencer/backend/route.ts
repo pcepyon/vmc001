@@ -21,7 +21,7 @@ export const registerInfluencerRoutes = (app: Hono<AppEnv>) => {
    * POST /api/influencer/profile
    * 인플루언서 프로필 생성
    */
-  app.post('/influencer/profile', async (c) => {
+  app.post('/api/influencer/profile', async (c) => {
     const logger = getLogger(c);
 
     // TODO: 인증 미들웨어 구현 필요

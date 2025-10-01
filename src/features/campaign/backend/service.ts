@@ -41,6 +41,8 @@ export const getCampaignList = async (
   const { status, category, location, sort, page, limit } = query;
   const offset = (page - 1) * limit;
 
+  console.log('[getCampaignList] 받은 쿼리:', { status, category, location, sort, page, limit });
+
   try {
     let countQuery = client
       .from(CAMPAIGNS_TABLE)
@@ -51,7 +53,8 @@ export const getCampaignList = async (
       countQuery = countQuery.eq('category', category);
     }
     if (location) {
-      countQuery = countQuery.eq('location', location);
+      // 지역 필터는 부분 매칭으로 처리 (예: "서울"로 "서울 강남구" 찾기)
+      countQuery = countQuery.ilike('location', `${location}%`);
     }
 
     const { count, error: countError } = await countQuery;
@@ -77,7 +80,10 @@ export const getCampaignList = async (
         images,
         status,
         created_at,
-        updated_at
+        updated_at,
+        advertiser_profiles!inner(
+          business_name
+        )
       `)
       .eq('status', status);
 
@@ -85,7 +91,8 @@ export const getCampaignList = async (
       dataQuery = dataQuery.eq('category', category);
     }
     if (location) {
-      dataQuery = dataQuery.eq('location', location);
+      // 지역 필터는 부분 매칭으로 처리 (예: "서울"로 "서울 강남구" 찾기)
+      dataQuery = dataQuery.ilike('location', `${location}%`);
     }
 
     if (sort === 'latest') {
@@ -137,6 +144,9 @@ export const getCampaignList = async (
         ? rowParse.data.images[0]
         : fallbackThumbnail(rowParse.data.id);
 
+      // advertiser_profiles 데이터 추출
+      const businessName = (row as any).advertiser_profiles?.business_name;
+
       const mapped: CampaignSummary = {
         id: rowParse.data.id,
         title: rowParse.data.title,
@@ -147,6 +157,8 @@ export const getCampaignList = async (
         applicationCount: countMap.get(rowParse.data.id) || 0,
         thumbnail,
         status: rowParse.data.status as 'recruiting' | 'closed' | 'selection_complete',
+        benefits: rowParse.data.benefits,
+        businessName: businessName || undefined,
         createdAt: rowParse.data.created_at,
       };
 
