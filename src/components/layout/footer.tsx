@@ -85,11 +85,6 @@ export const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/pricing" className="hover:text-white transition-colors">
-                  요금 안내
-                </Link>
-              </li>
-              <li>
                 <Link href="/advertiser/campaigns" className="hover:text-white transition-colors">
                   체험단 관리
                 </Link>
