@@ -3,45 +3,85 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface BannerSlide {
   id: string;
   title: string;
   description: string;
   imageUrl: string;
-  link?: string;
+  action?: {
+    type: 'filter' | 'sort' | 'combined';
+    filters?: {
+      category?: string;
+      location?: string;
+    };
+    sort?: 'latest' | 'deadline_soon' | 'popular';
+  };
   ctaText?: string;
 }
 
 export const HeroBanner = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const router = useRouter();
 
-  // 예시 배너 데이터 (실제로는 API에서 가져오거나 CMS에서 관리)
+  // 배너 데이터 - 필터/정렬 액션으로 변경
   const slides: BannerSlide[] = [
     {
       id: '1',
-      title: '🎉 인기 체험단 모집중',
-      description: '이번 주 가장 인기있는 체험단을 만나보세요',
+      title: '⏰ 오늘 마감! 서둘러 지원하세요',
+      description: '24시간 내 마감되는 체험단을 놓치지 마세요',
       imageUrl: 'https://picsum.photos/1200/400?random=1',
-      link: '/campaign/featured',
-      ctaText: '지금 지원하기'
+      action: {
+        type: 'sort',
+        sort: 'deadline_soon'
+      },
+      ctaText: '마감임박 체험단 보기'
     },
     {
       id: '2',
-      title: '✨ 신규 브랜드 체험단',
-      description: '새로운 브랜드의 특별한 체험 기회',
+      title: '🔥 실시간 인기 체험단',
+      description: '지금 가장 많은 관심을 받고 있는 체험단',
       imageUrl: 'https://picsum.photos/1200/400?random=2',
-      link: '/campaign/new',
-      ctaText: '자세히 보기'
+      action: {
+        type: 'sort',
+        sort: 'popular'
+      },
+      ctaText: '인기 체험단 보기'
     },
     {
       id: '3',
-      title: '📢 공지사항',
-      description: '서비스 업데이트 및 이벤트 소식',
+      title: '☕ 카페 & 맛집 체험단 특집',
+      description: '새로운 맛집과 카페를 체험해보세요',
       imageUrl: 'https://picsum.photos/1200/400?random=3',
-      link: '/notice',
-      ctaText: '확인하기'
+      action: {
+        type: 'combined',
+        filters: { category: 'restaurant' },
+        sort: 'latest'
+      },
+      ctaText: '맛집 체험단 보기'
+    },
+    {
+      id: '4',
+      title: '💄 뷰티 & 패션 체험단',
+      description: '최신 뷰티 트렌드를 체험해보세요',
+      imageUrl: 'https://picsum.photos/1200/400?random=4',
+      action: {
+        type: 'filter',
+        filters: { category: 'beauty' }
+      },
+      ctaText: '뷰티 체험단 보기'
+    },
+    {
+      id: '5',
+      title: '📍 서울 지역 체험단',
+      description: '서울 지역 체험단만 모아봤어요',
+      imageUrl: 'https://picsum.photos/1200/400?random=5',
+      action: {
+        type: 'filter',
+        filters: { location: '서울' }
+      },
+      ctaText: '서울 체험단 보기'
     }
   ];
 
@@ -64,6 +104,32 @@ export const HeroBanner = () => {
 
   const goToNext = () => {
     setCurrentSlide((prev) => (prev + 1) % slides.length);
+  };
+
+  // 배너 클릭 핸들러 - URL 파라미터로 필터/정렬 적용
+  const handleBannerClick = (slide: BannerSlide) => {
+    if (!slide.action) return;
+
+    const params = new URLSearchParams();
+
+    // 필터 파라미터 설정
+    if (slide.action.filters?.category) {
+      params.set('category', slide.action.filters.category);
+    }
+    if (slide.action.filters?.location) {
+      params.set('location', slide.action.filters.location);
+    }
+
+    // 정렬 파라미터 설정
+    if (slide.action.sort) {
+      params.set('sort', slide.action.sort);
+    }
+
+    // 캠페인 리스트로 스크롤하기 위한 파라미터
+    params.set('scrollTo', 'campaigns');
+
+    // URL 업데이트 및 페이지 이동
+    router.push(`/?${params.toString()}`);
   };
 
   return (
@@ -96,15 +162,14 @@ export const HeroBanner = () => {
                 <p className="text-lg md:text-xl mb-8 text-gray-100">
                   {slide.description}
                 </p>
-                {slide.link && slide.ctaText && (
-                  <Link href={slide.link}>
-                    <Button
-                      size="lg"
-                      className="bg-primary hover:bg-primary/90 text-white font-semibold px-8 py-6 text-lg"
-                    >
-                      {slide.ctaText}
-                    </Button>
-                  </Link>
+                {slide.ctaText && (
+                  <Button
+                    size="lg"
+                    className="bg-primary hover:bg-primary/90 text-white font-semibold px-8 py-6 text-lg cursor-pointer"
+                    onClick={() => handleBannerClick(slide)}
+                  >
+                    {slide.ctaText}
+                  </Button>
                 )}
               </div>
             </div>
