@@ -38,16 +38,11 @@ export const ApplyButtonGuard = ({ campaignId, campaign }: ApplyButtonGuardProps
     );
   }
 
-  return match({ isAuthenticated, user, applicationCheck, profileStatus, campaign })
+  return match({ isAuthenticated, applicationCheck, profileStatus, campaign })
     .with({ isAuthenticated: false }, () => (
       <Button onClick={() => router.push('/login')} className="w-full">
         로그인 후 지원하기
       </Button>
-    ))
-    .with({ user: { role: 'advertiser' } }, () => (
-      <div className="text-center p-4 bg-muted rounded-md">
-        <p className="text-sm text-muted-foreground">광고주는 체험단에 지원할 수 없습니다.</p>
-      </div>
     ))
     .with({ applicationCheck: { applied: true } }, () => (
       <div className="space-y-2">
