@@ -52,6 +52,73 @@ export const registerCampaignRoutes = (app: Hono<AppEnv>) => {
     return respond(c, result);
   });
 
+  // 더 구체적인 경로를 먼저 정의 - /api/campaigns/my
+  app.get('/api/campaigns/my', async (c) => {
+    const authHeader = c.req.header('Authorization');
+
+    if (!authHeader) {
+      return respond(
+        c,
+        failure(401, 'UNAUTHORIZED', 'Authorization header is required'),
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const supabase = getSupabase(c);
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return respond(
+        c,
+        failure(401, 'UNAUTHORIZED', 'Invalid token'),
+      );
+    }
+
+    const queryParams = c.req.query();
+    const logger = getLogger(c);
+
+    logger.info('[/api/campaigns/my] Raw query params:', queryParams);
+    logger.info('[/api/campaigns/my] Query param types:', {
+      page: typeof queryParams.page,
+      limit: typeof queryParams.limit,
+    });
+
+    const parsedQuery = MyCampaignsQuerySchema.safeParse(queryParams);
+
+    if (!parsedQuery.success) {
+      logger.error('[/api/campaigns/my] Query validation failed:', {
+        queryParams,
+        errors: parsedQuery.error.format(),
+      });
+
+      return respond(
+        c,
+        failure(
+          400,
+          campaignErrorCodes.invalidQuery,
+          'The provided query parameters are invalid.',
+          parsedQuery.error.format(),
+        ),
+      );
+    }
+
+    const result = await getMyCampaigns(supabase, user.id, parsedQuery.data);
+
+    if (!result.ok) {
+      const errorResult = result as ErrorResult<CampaignServiceError, unknown>;
+
+      if (errorResult.error.code === campaignErrorCodes.fetchError) {
+        logger.error('Failed to fetch my campaigns', errorResult.error.message);
+      }
+
+      return respond(c, result);
+    }
+
+    return respond(c, result);
+  });
+
+  // 와일드카드 경로는 나중에 정의 - /api/campaigns/:id
   app.get('/api/campaigns/:id', async (c) => {
     const campaignId = c.req.param('id');
     const parsedId = z.string().uuid().safeParse(campaignId);
@@ -80,59 +147,6 @@ export const registerCampaignRoutes = (app: Hono<AppEnv>) => {
         logger.error('Failed to fetch campaign detail', errorResult.error.message);
       } else if (errorResult.error.code === campaignErrorCodes.notFound) {
         logger.info('Campaign not found', { campaignId: parsedId.data });
-      }
-
-      return respond(c, result);
-    }
-
-    return respond(c, result);
-  });
-
-  app.get('/api/campaigns/my', async (c) => {
-    const authHeader = c.req.header('Authorization');
-
-    if (!authHeader) {
-      return respond(
-        c,
-        failure(401, 'UNAUTHORIZED', 'Authorization header is required'),
-      );
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    const supabase = getSupabase(c);
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-
-    if (authError || !user) {
-      return respond(
-        c,
-        failure(401, 'UNAUTHORIZED', 'Invalid token'),
-      );
-    }
-
-    const queryParams = c.req.query();
-    const parsedQuery = MyCampaignsQuerySchema.safeParse(queryParams);
-
-    if (!parsedQuery.success) {
-      return respond(
-        c,
-        failure(
-          400,
-          campaignErrorCodes.invalidQuery,
-          'The provided query parameters are invalid.',
-          parsedQuery.error.format(),
-        ),
-      );
-    }
-
-    const logger = getLogger(c);
-    const result = await getMyCampaigns(supabase, user.id, parsedQuery.data);
-
-    if (!result.ok) {
-      const errorResult = result as ErrorResult<CampaignServiceError, unknown>;
-
-      if (errorResult.error.code === campaignErrorCodes.fetchError) {
-        logger.error('Failed to fetch my campaigns', errorResult.error.message);
       }
 
       return respond(c, result);

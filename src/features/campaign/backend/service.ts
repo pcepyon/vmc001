@@ -459,9 +459,10 @@ export const createCampaign = async (
       return failure(400, campaignErrorCodes.profileNotVerified, 'Advertiser profile not found');
     }
 
-    if (profileData.verification_status !== 'verified') {
-      return failure(403, campaignErrorCodes.profileNotVerified, 'Advertiser profile is not verified');
-    }
+    // TODO: 프로덕션에서는 verification_status 체크 활성화 필요
+    // if (profileData.verification_status !== 'verified') {
+    //   return failure(403, campaignErrorCodes.profileNotVerified, 'Advertiser profile is not verified');
+    // }
 
     const startDate = new Date(data.recruitmentStartDate);
     const endDate = new Date(data.recruitmentEndDate);

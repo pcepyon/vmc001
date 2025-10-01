@@ -37,10 +37,15 @@ export const MyCampaignList = ({ campaigns, isLoading, error, onRetry, onCreateN
 
   if (campaigns.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 space-y-4">
-        <p className="text-muted-foreground">아직 등록한 체험단이 없습니다.</p>
-        <Button onClick={onCreateNew}>
-          체험단 등록하기
+      <div className="flex flex-col items-center justify-center py-16 space-y-4 border-2 border-dashed border-gray-200 rounded-lg">
+        <div className="text-center space-y-2">
+          <h3 className="text-lg font-medium">아직 등록한 체험단이 없습니다</h3>
+          <p className="text-sm text-muted-foreground">
+            첫 번째 체험단을 등록하고 인플루언서를 모집해보세요
+          </p>
+        </div>
+        <Button onClick={onCreateNew} size="lg">
+          첫 체험단 등록하기
         </Button>
       </div>
     );

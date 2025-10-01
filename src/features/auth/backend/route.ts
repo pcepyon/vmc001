@@ -19,6 +19,7 @@ export const registerAuthRoutes = (app: Hono<AppEnv>) => {
    * 현재 사용자 정보 조회
    */
   app.get('/api/auth/me', async (c) => {
+    const logger = getLogger(c);
     const authHeader = c.req.header('Authorization');
 
     if (!authHeader) {
@@ -34,6 +35,7 @@ export const registerAuthRoutes = (app: Hono<AppEnv>) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
+      logger.error('Auth error:', authError);
       return respond(
         c,
         failure(401, 'UNAUTHORIZED', 'Invalid token'),
@@ -47,20 +49,34 @@ export const registerAuthRoutes = (app: Hono<AppEnv>) => {
       .eq('auth_id', user.id)
       .maybeSingle();
 
+    logger.info('User role lookup:', {
+      userId: user.id,
+      userData,
+      error: userError
+    });
+
     if (userError || !userData) {
+      logger.error('User not found in users table:', {
+        authId: user.id,
+        error: userError
+      });
       return respond(
         c,
         failure(404, 'NOT_FOUND', 'User profile not found'),
       );
     }
 
+    const response = {
+      id: user.id,
+      email: user.email,
+      role: userData.role,
+    };
+
+    logger.info('Returning user info:', response);
+
     return c.json({
       ok: true,
-      data: {
-        id: user.id,
-        email: user.email,
-        role: userData.role,
-      },
+      data: response,
     });
   });
 

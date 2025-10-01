@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 import { useLogout } from '@/features/auth/hooks/useLogout';
-import { useUserRole } from '@/features/auth/hooks/useUserRole';
 import {
   Home,
   User,
@@ -31,7 +30,6 @@ import { cn } from '@/lib/utils';
 export const Header = () => {
   const router = useRouter();
   const { user, isLoading } = useCurrentUser();
-  const { data: userInfo } = useUserRole();
   const { mutate: logout } = useLogout();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -42,11 +40,6 @@ export const Header = () => {
       },
     });
   };
-
-  // 사용자 역할 확인 - API에서 role 가져오기
-  const userRole = userInfo?.role || (user?.userMetadata?.role || user?.appMetadata?.role) as 'advertiser' | 'influencer' | undefined;
-  const isAdvertiser = userRole === 'advertiser';
-  const isInfluencer = userRole === 'influencer';
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
@@ -68,22 +61,22 @@ export const Header = () => {
                 </Button>
               </Link>
 
-              {isInfluencer && (
-                <Link href="/my-applications">
-                  <Button variant="ghost" size="sm" className="gap-2">
-                    <FileText className="w-4 h-4" />
-                    내 지원목록
-                  </Button>
-                </Link>
-              )}
+              {user && (
+                <>
+                  <Link href="/my-applications">
+                    <Button variant="ghost" size="sm" className="gap-2">
+                      <FileText className="w-4 h-4" />
+                      내 지원목록
+                    </Button>
+                  </Link>
 
-              {isAdvertiser && (
-                <Link href="/advertiser/campaigns">
-                  <Button variant="ghost" size="sm" className="gap-2">
-                    <Briefcase className="w-4 h-4" />
-                    체험단 관리
-                  </Button>
-                </Link>
+                  <Link href="/advertiser/campaigns">
+                    <Button variant="ghost" size="sm" className="gap-2">
+                      <Briefcase className="w-4 h-4" />
+                      체험단 관리
+                    </Button>
+                  </Link>
+                </>
               )}
             </nav>
           </div>
@@ -106,42 +99,18 @@ export const Header = () => {
                     <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuLabel>내 계정</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      {isInfluencer ? (
-                        <>
-                          <DropdownMenuItem asChild>
-                            <Link href="/influencer/profile">
-                              프로필 관리
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href="/my-applications">
-                              내 지원목록
-                            </Link>
-                          </DropdownMenuItem>
-                        </>
-                      ) : isAdvertiser ? (
-                        <>
-                          <DropdownMenuItem asChild>
-                            <Link href="/advertiser/profile">
-                              프로필 관리
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href="/advertiser/campaigns">
-                              체험단 관리
-                            </Link>
-                          </DropdownMenuItem>
-                        </>
-                      ) : (
-                        // 역할이 아직 로드되지 않은 경우 기본 메뉴
-                        <>
-                          <DropdownMenuItem asChild>
-                            <Link href="/my-applications">
-                              내 지원목록
-                            </Link>
-                          </DropdownMenuItem>
-                        </>
-                      )}
+
+                      <DropdownMenuItem asChild>
+                        <Link href="/my-applications">
+                          내 지원목록
+                        </Link>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem asChild>
+                        <Link href="/advertiser/campaigns">
+                          체험단 관리
+                        </Link>
+                      </DropdownMenuItem>
 
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
@@ -201,39 +170,19 @@ export const Header = () => {
 
               {user ? (
                 <>
-                  {isInfluencer && (
-                    <>
-                      <Link href="/my-applications" onClick={() => setIsMobileMenuOpen(false)}>
-                        <Button variant="ghost" className="w-full justify-start gap-2">
-                          <FileText className="w-4 h-4" />
-                          내 지원목록
-                        </Button>
-                      </Link>
-                      <Link href="/influencer/profile" onClick={() => setIsMobileMenuOpen(false)}>
-                        <Button variant="ghost" className="w-full justify-start gap-2">
-                          <User className="w-4 h-4" />
-                          프로필 관리
-                        </Button>
-                      </Link>
-                    </>
-                  )}
+                  <Link href="/my-applications" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start gap-2">
+                      <FileText className="w-4 h-4" />
+                      내 지원목록
+                    </Button>
+                  </Link>
 
-                  {isAdvertiser && (
-                    <>
-                      <Link href="/advertiser/campaigns" onClick={() => setIsMobileMenuOpen(false)}>
-                        <Button variant="ghost" className="w-full justify-start gap-2">
-                          <Briefcase className="w-4 h-4" />
-                          체험단 관리
-                        </Button>
-                      </Link>
-                      <Link href="/advertiser/profile" onClick={() => setIsMobileMenuOpen(false)}>
-                        <Button variant="ghost" className="w-full justify-start gap-2">
-                          <User className="w-4 h-4" />
-                          프로필 관리
-                        </Button>
-                      </Link>
-                    </>
-                  )}
+                  <Link href="/advertiser/campaigns" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start gap-2">
+                      <Briefcase className="w-4 h-4" />
+                      체험단 관리
+                    </Button>
+                  </Link>
 
                   <div className="border-t my-2 pt-2">
                     <Button

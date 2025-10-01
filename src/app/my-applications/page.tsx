@@ -27,6 +27,15 @@ export default function MyApplicationsPage() {
     limit: 20,
   });
 
+  // 디버깅: 권한 확인
+  useEffect(() => {
+    console.log('[내 지원목록] 권한 확인:', {
+      session: !!session,
+      userInfo,
+      role: userInfo?.role,
+    });
+  }, [session, userInfo]);
+
   useEffect(() => {
     if (!authLoading && !session) {
       router.push('/login');
