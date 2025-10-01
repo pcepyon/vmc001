@@ -7,19 +7,15 @@ export const useMyApplications = (query: MyApplicationsQuery) => {
   const { session } = useSupabaseAuth();
 
   return useQuery({
-    queryKey: ['applications', 'my', query],
+    queryKey: ['applications', 'my', session?.user?.id, query], // 사용자 ID를 queryKey에 추가
     queryFn: async () => {
-      const token = session?.access_token;
-
-      if (!token) {
+      if (!session) {
         throw new Error('로그인이 필요합니다.');
       }
 
+      // apiClient 인터셉터가 자동으로 토큰을 추가하므로 중복 제거
       const response = await apiClient.get<MyApplicationsResponse>('/api/applications/my', {
         params: query,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       });
 
       return response.data;

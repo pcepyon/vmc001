@@ -37,6 +37,12 @@ export const createUserAccount = async (
     const { data: authData, error: authError } = await client.auth.signUp({
       email: request.email,
       password: request.password,
+      options: {
+        data: {
+          role: request.role,
+          name: request.name,
+        }
+      }
     });
 
     if (authError) {

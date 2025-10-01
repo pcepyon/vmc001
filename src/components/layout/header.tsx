@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 import { useLogout } from '@/features/auth/hooks/useLogout';
+import { useUserRole } from '@/features/auth/hooks/useUserRole';
 import {
   Home,
   User,
@@ -30,6 +31,7 @@ import { cn } from '@/lib/utils';
 export const Header = () => {
   const router = useRouter();
   const { user, isLoading } = useCurrentUser();
+  const { data: userInfo } = useUserRole();
   const { mutate: logout } = useLogout();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -41,8 +43,8 @@ export const Header = () => {
     });
   };
 
-  // 사용자 역할 확인 - userMetadata에서 role 가져오기
-  const userRole = (user?.userMetadata?.role || user?.appMetadata?.role) as 'advertiser' | 'influencer' | undefined;
+  // 사용자 역할 확인 - API에서 role 가져오기
+  const userRole = userInfo?.role || (user?.userMetadata?.role || user?.appMetadata?.role) as 'advertiser' | 'influencer' | undefined;
   const isAdvertiser = userRole === 'advertiser';
   const isInfluencer = userRole === 'influencer';
 
@@ -104,8 +106,7 @@ export const Header = () => {
                     <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuLabel>내 계정</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-
-                      {isInfluencer && (
+                      {isInfluencer ? (
                         <>
                           <DropdownMenuItem asChild>
                             <Link href="/influencer/profile">
@@ -118,9 +119,7 @@ export const Header = () => {
                             </Link>
                           </DropdownMenuItem>
                         </>
-                      )}
-
-                      {isAdvertiser && (
+                      ) : isAdvertiser ? (
                         <>
                           <DropdownMenuItem asChild>
                             <Link href="/advertiser/profile">
@@ -130,6 +129,15 @@ export const Header = () => {
                           <DropdownMenuItem asChild>
                             <Link href="/advertiser/campaigns">
                               체험단 관리
+                            </Link>
+                          </DropdownMenuItem>
+                        </>
+                      ) : (
+                        // 역할이 아직 로드되지 않은 경우 기본 메뉴
+                        <>
+                          <DropdownMenuItem asChild>
+                            <Link href="/my-applications">
+                              내 지원목록
                             </Link>
                           </DropdownMenuItem>
                         </>

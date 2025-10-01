@@ -1,10 +1,27 @@
 import axios, { isAxiosError } from "axios";
+import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
 
 const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL ?? "",
   headers: {
     "Content-Type": "application/json",
   },
+});
+
+// Request interceptor to add auth token
+apiClient.interceptors.request.use(async (config) => {
+  try {
+    const supabase = getSupabaseBrowserClient();
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (session?.access_token) {
+      config.headers.Authorization = `Bearer ${session.access_token}`;
+    }
+  } catch (error) {
+    console.error('Failed to get auth token:', error);
+  }
+
+  return config;
 });
 
 type ErrorPayload = {

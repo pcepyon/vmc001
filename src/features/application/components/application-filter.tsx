@@ -19,9 +19,13 @@ const FILTER_OPTIONS: { value: StatusFilter; label: string }[] = [
 export const ApplicationFilter = ({ value, onChange }: ApplicationFilterProps) => {
   return (
     <Tabs value={value} onValueChange={(v) => onChange(v as StatusFilter)}>
-      <TabsList className="grid w-full grid-cols-4">
+      <TabsList className="grid w-full grid-cols-4 h-auto">
         {FILTER_OPTIONS.map((option) => (
-          <TabsTrigger key={option.value} value={option.value}>
+          <TabsTrigger
+            key={option.value}
+            value={option.value}
+            className="text-xs sm:text-sm px-2 py-1.5 sm:px-3 sm:py-2"
+          >
             {option.label}
           </TabsTrigger>
         ))}

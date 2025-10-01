@@ -15,6 +15,56 @@ import { authErrorCodes, type AuthServiceError } from './error';
 
 export const registerAuthRoutes = (app: Hono<AppEnv>) => {
   /**
+   * GET /api/auth/me
+   * 현재 사용자 정보 조회
+   */
+  app.get('/api/auth/me', async (c) => {
+    const authHeader = c.req.header('Authorization');
+
+    if (!authHeader) {
+      return respond(
+        c,
+        failure(401, 'UNAUTHORIZED', 'Authorization header is required'),
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const supabase = getSupabase(c);
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return respond(
+        c,
+        failure(401, 'UNAUTHORIZED', 'Invalid token'),
+      );
+    }
+
+    // users 테이블에서 role 정보 조회
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('role')
+      .eq('auth_id', user.id)
+      .maybeSingle();
+
+    if (userError || !userData) {
+      return respond(
+        c,
+        failure(404, 'NOT_FOUND', 'User profile not found'),
+      );
+    }
+
+    return c.json({
+      ok: true,
+      data: {
+        id: user.id,
+        email: user.email,
+        role: userData.role,
+      },
+    });
+  });
+
+  /**
    * POST /api/auth/signup
    * 회원가입
    */
